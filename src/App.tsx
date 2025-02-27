@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import WidgetSettingsPage from './pages/WidgetSettingsPage';
+import KeywordResponsesPage from './pages/KeywordResponsesPage';
+import ChatHistoryPage from './pages/ChatHistoryPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import { getCurrentUser } from './lib/supabase';
 
 function App() {
@@ -38,6 +41,9 @@ function App() {
         <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
         <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
         <Route path="/widget-settings" element={user ? <WidgetSettingsPage /> : <Navigate to="/login" />} />
+        <Route path="/keyword-responses" element={user ? <KeywordResponsesPage /> : <Navigate to="/login" />} />
+        <Route path="/chat-history" element={user ? <ChatHistoryPage /> : <Navigate to="/login" />} />
+        <Route path="/analytics" element={user ? <AnalyticsPage /> : <Navigate to="/login" />} />
         <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
       </Routes>
     </Router>

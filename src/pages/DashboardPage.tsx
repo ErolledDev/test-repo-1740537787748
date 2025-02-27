@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/layout/Layout';
 import DashboardOverview from '../components/dashboard/DashboardOverview';
 import RecentChats from '../components/dashboard/RecentChats';
+import WidgetScript from '../components/widget/WidgetScript';
 import { getChatSessions } from '../lib/api';
 import { getCurrentUser } from '../lib/supabase';
 import { ChatSession } from '../types';
@@ -11,6 +12,7 @@ const DashboardPage: React.FC = () => {
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('User');
+  const [userId, setUserId] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,6 +26,7 @@ const DashboardPage: React.FC = () => {
         }
         
         setUserName(user.email?.split('@')[0] || 'User');
+        setUserId(user.id);
         
         const chatSessions = await getChatSessions(user.id);
         setChats(chatSessions);
@@ -69,28 +72,7 @@ const DashboardPage: React.FC = () => {
         
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <RecentChats chats={chats.slice(0, 5)} onViewChat={handleViewChat} />
-          
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b">
-              <h2 className="text-lg font-medium text-gray-900">Widget Integration</h2>
-            </div>
-            <div className="p-6">
-              <p className="mb-4 text-gray-600">
-                Add the following code to your website to integrate the chat widget:
-              </p>
-              <div className="p-4 overflow-x-auto font-mono text-sm bg-gray-100 rounded">
-                <pre>{`<script src="https://mydomain123.netlify.app/widget.js"></script>
-<script>
-  new BusinessChatPlugin({
-    uid: '2ff3b1da-9421-48fa-9bfb-bd644e726567'
-  });
-</script>`}</pre>
-              </div>
-              <button className="px-4 py-2 mt-4 text-sm font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700">
-                Copy Code
-              </button>
-            </div>
-          </div>
+          <WidgetScript userId={userId} />
         </div>
       </div>
     </Layout>
