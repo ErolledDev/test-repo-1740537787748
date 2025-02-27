@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import WidgetSettingsPage from './pages/WidgetSettingsPage';
 import KeywordResponsesPage from './pages/KeywordResponsesPage';
@@ -39,6 +40,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
+        <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage />} />
         <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
         <Route path="/widget-settings" element={user ? <WidgetSettingsPage /> : <Navigate to="/login" />} />
         <Route path="/keyword-responses" element={user ? <KeywordResponsesPage /> : <Navigate to="/login" />} />

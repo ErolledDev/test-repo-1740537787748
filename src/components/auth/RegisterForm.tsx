@@ -1,43 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import { signIn } from '../../lib/supabase';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import React, { useState } from 'react';
+import { signUp } from '../../lib/supabase';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Lock, UserPlus } from 'lucide-react';
 
-const LoginForm: React.FC = () => {
+const RegisterForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    // Check if there's a success message from registration
-    if (location.state?.message) {
-      setSuccess(location.state.message);
-      // Clear the location state
-      window.history.replaceState({}, document.title);
-    }
-  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const { data, error } = await signIn(email, password);
+      const { data, error } = await signUp(email, password);
       
       if (error) {
         throw error;
       }
       
-      if (data?.user) {
-        navigate('/dashboard');
+      if (data) {
+        // Registration successful
+        navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      setError(err.message || 'Failed to sign up');
     } finally {
       setLoading(false);
     }
@@ -46,19 +51,13 @@ const LoginForm: React.FC = () => {
   return (
     <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Sign In</h1>
-        <p className="mt-2 text-gray-600">Sign in to access your dashboard</p>
+        <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
+        <p className="mt-2 text-gray-600">Sign up to get started with Chat Widget Platform</p>
       </div>
       
       {error && (
         <div className="p-4 text-sm text-red-700 bg-red-100 rounded-md">
           {error}
-        </div>
-      )}
-      
-      {success && (
-        <div className="p-4 text-sm text-green-700 bg-green-100 rounded-md">
-          {success}
         </div>
       )}
       
@@ -97,10 +96,32 @@ const LoginForm: React.FC = () => {
               id="password"
               name="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="block w-full pl-10 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="••••••••"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+            Confirm Password
+          </label>
+          <div className="relative mt-1">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Lock className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="block w-full pl-10 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               placeholder="••••••••"
             />
@@ -119,12 +140,12 @@ const LoginForm: React.FC = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Signing in...
+                Creating account...
               </span>
             ) : (
               <span className="flex items-center">
-                <LogIn className="w-5 h-5 mr-2 -ml-1" />
-                Sign in
+                <UserPlus className="w-5 h-5 mr-2 -ml-1" />
+                Create Account
               </span>
             )}
           </button>
@@ -132,9 +153,9 @@ const LoginForm: React.FC = () => {
         
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
-            <a href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Sign up
+            Already have an account?{' '}
+            <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Sign in
             </a>
           </p>
         </div>
@@ -143,4 +164,4 @@ const LoginForm: React.FC = () => {
   );
 };
 
-export default LoginForm;
+export default RegisterForm;
