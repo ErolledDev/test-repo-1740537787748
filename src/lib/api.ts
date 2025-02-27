@@ -167,3 +167,73 @@ export async function getWidgetData(uid: string) {
     keywordResponses
   };
 }
+
+// Create a new chat session
+export async function createChatSession(session: Omit<ChatSession, 'id' | 'created_at' | 'updated_at'>): Promise<ChatSession | null> {
+  const { data, error } = await supabase
+    .from('chat_sessions')
+    .insert(session)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating chat session:', error);
+    return null;
+  }
+  
+  return data as ChatSession;
+}
+
+// Create a new message
+export async function createMessage(message: Omit<Message, 'id' | 'created_at'>): Promise<Message | null> {
+  const { data, error } = await supabase
+    .from('messages')
+    .insert(message)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating message:', error);
+    return null;
+  }
+  
+  return data as Message;
+}
+
+// Get active chat sessions
+export async function getActiveChatSessions(userId: string): Promise<ChatSession[]> {
+  const { data, error } = await supabase
+    .from('chat_sessions')
+    .select('*')
+    .eq('user_id', userId)
+    .in('status', ['active', 'agent_assigned'])
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching active chat sessions:', error);
+    return [];
+  }
+  
+  return data as ChatSession[];
+}
+
+// Get analytics data
+export async function getAnalyticsData(userId: string, timeRange: string = '7d') {
+  // In a real implementation, this would fetch analytics data from the database
+  // For now, we'll return mock data
+  return {
+    total_chats: 156,
+    total_messages: 1243,
+    average_response_time: 8.5,
+    chat_duration: 4.2,
+    visitor_satisfaction: 92,
+    keyword_matches: {
+      'pricing': 42,
+      'support': 38,
+      'features': 27,
+      'account': 21,
+      'billing': 18,
+      'other': 34
+    }
+  };
+}

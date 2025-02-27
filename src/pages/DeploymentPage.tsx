@@ -9,8 +9,8 @@ const DeploymentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('User');
   const [userId, setUserId] = useState('');
-  const [deploymentStatus, setDeploymentStatus] = useState<'not_deployed' | 'deploying' | 'deployed'>('not_deployed');
-  const [deploymentUrl, setDeploymentUrl] = useState<string | null>(null);
+  const [deploymentStatus, setDeploymentStatus] = useState<'not_deployed' | 'deploying' | 'deployed'>('deployed');
+  const [deploymentUrl, setDeploymentUrl] = useState<string | null>('https://widgeto.netlify.app');
   const [isDeploying, setIsDeploying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -31,7 +31,8 @@ const DeploymentPage: React.FC = () => {
         // In a real app, you would fetch deployment status from your API
         // For now, we'll simulate it
         setTimeout(() => {
-          setDeploymentStatus('not_deployed');
+          setDeploymentStatus('deployed');
+          setDeploymentUrl('https://widgeto.netlify.app');
           setLoading(false);
         }, 1000);
       } catch (error) {
@@ -55,7 +56,7 @@ const DeploymentPage: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 3000));
       
       setDeploymentStatus('deployed');
-      setDeploymentUrl('https://your-widget-name.netlify.app');
+      setDeploymentUrl('https://widgeto.netlify.app');
     } catch (error) {
       console.error('Deployment error:', error);
       setError('Failed to deploy widget. Please try again.');
@@ -217,7 +218,7 @@ const DeploymentPage: React.FC = () => {
           
           <WidgetCodeGenerator 
             userId={userId} 
-            customDomain={deploymentUrl ? new URL(deploymentUrl).hostname : undefined}
+            customDomain="widgeto.netlify.app"
           />
         </div>
         

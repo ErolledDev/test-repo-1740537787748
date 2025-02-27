@@ -8,7 +8,7 @@ interface WidgetCodeGeneratorProps {
 
 const WidgetCodeGenerator: React.FC<WidgetCodeGeneratorProps> = ({ 
   userId, 
-  customDomain = 'mydomain123.netlify.app' 
+  customDomain = 'widgeto.netlify.app' 
 }) => {
   const [copied, setCopied] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);

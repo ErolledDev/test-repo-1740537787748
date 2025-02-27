@@ -325,7 +325,7 @@ const WidgetSettingsPage: React.FC = () => {
               </p>
               
               <div className="p-4 overflow-x-auto font-mono text-sm bg-gray-100 rounded">
-                <pre>{`<script src="https://mydomain123.netlify.app/widget.js"></script>
+                <pre>{`<script src="https://widgeto.netlify.app/widget.js"></script>
 <script>
   new BusinessChatPlugin({
     uid: '${settings.user_id}'
@@ -337,7 +337,7 @@ const WidgetSettingsPage: React.FC = () => {
                 className="px-4 py-2 mt-4 text-sm font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700"
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    `<script src="https://mydomain123.netlify.app/widget.js"></script>\n<script>\n  new BusinessChatPlugin({\n    uid: '${settings.user_id}'\n  });\n</script>`
+                    `<script src="https://widgeto.netlify.app/widget.js"></script>\n<script>\n  new BusinessChatPlugin({\n    uid: '${settings.user_id}'\n  });\n</script>`
                   );
                   setSuccess('Integration code copied to clipboard!');
                   setTimeout(() => setSuccess(null), 3000);

@@ -68,12 +68,16 @@
     async fetchSettings() {
       try {
         // In a real implementation, this would fetch from your API
-        // For demo purposes, we'll use the default settings
-        // const response = await fetch(`https://api.example.com/widget/${this.options.uid}`);
-        // this.settings = await response.json();
+        const response = await fetch(`https://widgeto.netlify.app/api/widget/${this.options.uid}`);
         
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // If the API is available, use the response
+        if (response.ok) {
+          const data = await response.json();
+          this.settings = data.settings || this.settings;
+        } else {
+          // Fallback to default settings
+          console.warn('Chat Widget: Could not fetch settings, using defaults');
+        }
       } catch (error) {
         console.error('Chat Widget: Failed to fetch settings', error);
       }
@@ -396,27 +400,41 @@
       
       try {
         // In a real implementation, this would send the message to your API
-        // const response = await fetch(`https://api.example.com/chat/${this.options.uid}`, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({
-        //     message,
-        //     visitorId: this.visitorId
-        //   })
-        // });
-        // const data = await response.json();
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Hide typing indicator
-        this.hideTypingIndicator();
-        
-        // Add bot response
-        this.addMessage({
-          content: "Thanks for your message! This is a demo response. In a real implementation, this would be handled by your backend.",
-          sender: 'bot'
+        const response = await fetch(`https://widgeto.netlify.app/api/chat/${this.options.uid}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message,
+            visitorId: this.visitorId
+          })
         });
+        
+        // If the API is available, use the response
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Hide typing indicator
+          this.hideTypingIndicator();
+          
+          // Add bot response
+          this.addMessage({
+            content: data.response || "Thanks for your message! We'll get back to you soon.",
+            sender: 'bot'
+          });
+        } else {
+          // Fallback response
+          // Simulate API delay
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Hide typing indicator
+          this.hideTypingIndicator();
+          
+          // Add bot response
+          this.addMessage({
+            content: "Thanks for your message! This is a demo response. In a real implementation, this would be handled by your backend.",
+            sender: 'bot'
+          });
+        }
       } catch (error) {
         console.error('Chat Widget: Failed to process message', error);
         

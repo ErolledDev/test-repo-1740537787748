@@ -2,7 +2,7 @@ import { io, Socket } from 'socket.io-client';
 import { Message, ChatSession } from '../types';
 
 // The base URL for the Socket.io server
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://widgeto.netlify.app';
 
 let socket: Socket | null = null;
 

@@ -106,6 +106,25 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     }
   };
 
+  // Convert hex color to RGB for opacity support
+  const hexToRgb = (hex: string) => {
+    // Remove # if present
+    hex = hex.replace('#', '');
+    
+    // Parse the hex values
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    return { r, g, b };
+  };
+
+  // Get primary color with opacity
+  const getPrimaryColorWithOpacity = (opacity: number) => {
+    const rgb = hexToRgb(settings.primary_color);
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
+  };
+
   return (
     <div className="relative">
       {/* Widget Button */}
