@@ -8,7 +8,7 @@ import { getCurrentUser } from '../lib/supabase';
 import { getWidgetSettings } from '../lib/api';
 import { WidgetSettings } from '../types';
 import { useNavigate } from 'react-router-dom';
-import { getDeploymentStatus } from '../lib/deploy';
+import { deployWidget, getDeploymentStatus } from '../lib/deploy';
 
 const DeploymentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -105,21 +105,19 @@ const DeploymentPage: React.FC = () => {
     if (widgetSettings) {
       handleDeployStart();
       // Use the existing deploymentId for redeployment
-      import('../../lib/deploy').then(({ deployWidget }) => {
-        deployWidget({
-          userId,
-          widgetSettings,
-          provider: 'netlify',
-          deployId: deploymentId || undefined
-        }).then(result => {
-          if (result.success) {
-            handleDeploySuccess(result);
-          } else {
-            handleDeployError(result.error || 'Redeployment failed');
-          }
-        }).catch(error => {
-          handleDeployError(error.message || 'Redeployment failed');
-        });
+      deployWidget({
+        userId,
+        widgetSettings,
+        provider: 'netlify',
+        deployId: deploymentId || undefined
+      }).then(result => {
+        if (result.success) {
+          handleDeploySuccess(result);
+        } else {
+          handleDeployError(result.error || 'Redeployment failed');
+        }
+      }).catch(error => {
+        handleDeployError(error.message || 'Redeployment failed');
       });
     }
   };

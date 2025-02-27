@@ -186,23 +186,29 @@ const AnalyticsPage: React.FC = () => {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Chat Duration */}
           <div className="p-6 bg-white rounded-lg shadow">
-            <h3 className="mb- <div className="ml-4">
-              <p className="text-3xl font-bold text-gray-900">{analyticsData.chatDuration} min</p>
-              <p className="text-sm text-gray-500">Average time spent in conversation</p>
+            <h3 className="mb-4 text-lg font-medium text-gray-900">Chat Duration</h3>
+            <div className="flex items-center">
+              <div className="p-4 text-white bg-indigo-100 rounded-full">
+                <Clock className="w-8 h-8 text-indigo-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-3xl font-bold text-gray-900">{analyticsData.chatDuration} min</p>
+                <p className="text-sm text-gray-500">Average time spent in conversation</p>
+              </div>
             </div>
           </div>
-        </div>
         
-        {/* Visitor Engagement */}
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="mb-4 text-lg font-medium text-gray-900">Visitor Engagement</h3>
-          <div className="flex items-center">
-            <div className="p-4 text-white bg-green-100 rounded-full">
-              <Users className="w-8 h-8 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-3xl font-bold text-gray-900">78%</p>
-              <p className="text-sm text-gray-500">Of visitors engage with the chat widget</p>
+          {/* Visitor Engagement */}
+          <div className="p-6 bg-white rounded-lg shadow">
+            <h3 className="mb-4 text-lg font-medium text-gray-900">Visitor Engagement</h3>
+            <div className="flex items-center">
+              <div className="p-4 text-white bg-green-100 rounded-full">
+                <Users className="w-8 h-8 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-3xl font-bold text-gray-900">78%</p>
+                <p className="text-sm text-gray-500">Of visitors engage with the chat widget</p>
+              </div>
             </div>
           </div>
         </div>
@@ -212,5 +218,3 @@ const AnalyticsPage: React.FC = () => {
 };
 
 export default AnalyticsPage;
-  )
-}
