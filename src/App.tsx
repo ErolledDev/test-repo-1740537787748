@@ -11,6 +11,7 @@ import LiveChatPage from './pages/LiveChatPage';
 import HelpCenterPage from './pages/HelpCenterPage';
 import NotificationsPage from './pages/NotificationsPage';
 import DeploymentPage from './pages/DeploymentPage';
+import ProfilePage from './pages/ProfilePage';
 import { getCurrentUser } from './lib/supabase';
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
         <Route path="/help-center" element={user ? <HelpCenterPage /> : <Navigate to="/login" />} />
         <Route path="/notifications" element={user ? <NotificationsPage /> : <Navigate to="/login" />} />
         <Route path="/deployment" element={user ? <DeploymentPage /> : <Navigate to="/login" />} />
+        <Route path="/profile" element={user ? <ProfilePage /> : <Navigate to="/login" />} />
         <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
       </Routes>
     </Router>

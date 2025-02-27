@@ -3,6 +3,13 @@ import { format } from 'date-fns';
 import { Send, User, Bot, Clock, X, Check, Phone, Video, Paperclip } from 'lucide-react';
 import { ChatSession, Message } from '../../types';
 import { updateChatSession, getChatSessionMessages } from '../../lib/api';
+import { 
+  subscribeToNewMessages, 
+  unsubscribeFromNewMessages, 
+  sendMessage as sendSocketMessage,
+  joinChatRoom,
+  leaveChatRoom
+} from '../../lib/socket';
 
 interface LiveChatPanelProps {
   session: ChatSession;
@@ -36,10 +43,22 @@ const LiveChatPanel: React.FC<LiveChatPanelProps> = ({
     };
 
     fetchMessages();
+    
+    // Join the chat room
+    joinChatRoom(session.id);
+    
+    // Subscribe to new messages
+    subscribeToNewMessages(session.id, (newMessage) => {
+      if (newMessage.sender_type !== 'agent') {
+        setMessages(prevMessages => [...prevMessages, newMessage]);
+      }
+    });
 
-    // Poll for new messages every 5 seconds
-    const interval = setInterval(fetchMessages, 5000);
-    return () => clearInterval(interval);
+    return () => {
+      // Leave the chat room and unsubscribe when component unmounts
+      leaveChatRoom(session.id);
+      unsubscribeFromNewMessages(session.id);
+    };
   }, [session.id]);
 
   useEffect(() => {
@@ -56,19 +75,26 @@ const LiveChatPanel: React.FC<LiveChatPanelProps> = ({
     setSending(true);
     
     try {
-      // In a real app, you would send this to your API
-      // For now, we'll just add it to the local state
-      const newMessage: Message = {
-        id: Date.now().toString(),
+      // Create the message object
+      const newMessage: Omit<Message, 'id' | 'created_at'> = {
         chat_session_id: session.id,
         sender_type: 'agent',
         sender_id: 'agent-1', // This would be the actual agent ID
-        content: message,
+        content: message
+      };
+      
+      // Add to local state immediately for UI responsiveness
+      const tempMessage: Message = {
+        ...newMessage,
+        id: `temp-${Date.now()}`,
         created_at: new Date().toISOString()
       };
       
-      setMessages([...messages, newMessage]);
+      setMessages([...messages, tempMessage]);
       setMessage('');
+      
+      // Send via socket
+      sendSocketMessage(newMessage);
       
       // Update session status if it's not already agent_assigned
       if (session.status !== 'agent_assigned') {

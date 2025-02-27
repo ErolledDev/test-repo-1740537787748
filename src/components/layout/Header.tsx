@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Bell, User, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Bell, User, X, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { signOut } from '../../lib/supabase';
 
 interface HeaderProps {
   title: string;
@@ -14,6 +15,10 @@ const Header: React.FC<HeaderProps> = ({
   notificationCount = 0
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Mock notifications for demo
   const notifications = [
@@ -40,6 +45,27 @@ const Header: React.FC<HeaderProps> = ({
     }
   ];
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-white border-b">
       <h1 className="text-2xl font-semibold text-gray-800">{title}</h1>
@@ -59,7 +85,7 @@ const Header: React.FC<HeaderProps> = ({
           </button>
           
           {showNotifications && (
-            <div className="absolute right-0 z-10 w-80 mt-2 overflow-hidden bg-white rounded-md shadow-lg">
+            <div ref={notificationsRef} className="absolute right-0 z-10 w-80 mt-2 overflow-hidden bg-white rounded-md shadow-lg">
               <div className="flex items-center justify-between p-4 border-b">
                 <h3 className="font-medium text-gray-900">Notifications</h3>
                 <button 
@@ -106,11 +132,47 @@ const Header: React.FC<HeaderProps> = ({
           )}
         </div>
         
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center justify-center w-8 h-8 text-white bg-indigo-600 rounded-full">
-            <User className="w-4 h-4" />
-          </div>
-          <span className="text-sm font-medium text-gray-700">{userName}</span>
+        <div className="relative">
+          <button 
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 focus:outline-none"
+          >
+            <div className="flex items-center justify-center w-8 h-8 text-white bg-indigo-600 rounded-full">
+              <User className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-medium">{userName}</span>
+            <ChevronDown className="w-4 h-4" />
+          </button>
+          
+          {showProfileMenu && (
+            <div ref={profileMenuRef} className="absolute right-0 z-10 w-48 mt-2 overflow-hidden bg-white rounded-md shadow-lg">
+              <div className="py-1">
+                <Link 
+                  to="/profile" 
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setShowProfileMenu(false)}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </Link>
+                <Link 
+                  to="/widget-settings" 
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setShowProfileMenu(false)}
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </Link>
+                <button 
+                  onClick={handleSignOut}
+                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign out
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>

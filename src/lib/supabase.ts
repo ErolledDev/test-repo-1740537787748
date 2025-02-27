@@ -74,3 +74,59 @@ export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser();
   return { user: data?.user, error };
 }
+
+export async function updateUserProfile(updates: {
+  display_name?: string;
+  password?: string;
+  current_password?: string;
+  avatar_url?: string;
+}) {
+  try {
+    // If updating password
+    if (updates.password) {
+      if (!updates.current_password) {
+        throw new Error('Current password is required to set a new password');
+      }
+      
+      const { error } = await supabase.auth.updateUser({
+        password: updates.password
+      });
+      
+      if (error) throw error;
+    }
+    
+    // If updating other user metadata
+    if (updates.display_name || updates.avatar_url) {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          display_name: updates.display_name,
+          avatar_url: updates.avatar_url
+        }
+      });
+      
+      if (error) throw error;
+    }
+    
+    return { error: null };
+  } catch (error: any) {
+    return { error };
+  }
+}
+
+export async function getUserProfile(userId: string) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single();
+  
+  return { profile: data, error };
+}
+
+export async function resetPassword(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+  
+  return { error };
+}
