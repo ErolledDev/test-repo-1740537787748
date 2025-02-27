@@ -7,7 +7,11 @@ import {
   History, 
   BarChart, 
   LogOut,
-  Users
+  Users,
+  MessageCircle,
+  HelpCircle,
+  Bell,
+  Upload
 } from 'lucide-react';
 import { signOut } from '../../lib/supabase';
 
@@ -40,6 +44,19 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole = 'user' }) => {
               >
                 <LayoutDashboard className="w-5 h-5" />
                 <span>Dashboard</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/live-chat"
+                className={({ isActive }) =>
+                  `flex items-center p-2 space-x-3 rounded-md ${
+                    isActive ? 'bg-indigo-100 text-indigo-600' : 'text-gray-700 hover:bg-indigo-50'
+                  }`
+                }
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span>Live Chat</span>
               </NavLink>
             </li>
             <li>
@@ -92,6 +109,45 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole = 'user' }) => {
               >
                 <BarChart className="w-5 h-5" />
                 <span>Analytics</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/deployment"
+                className={({ isActive }) =>
+                  `flex items-center p-2 space-x-3 rounded-md ${
+                    isActive ? 'bg-indigo-100 text-indigo-600' : 'text-gray-700 hover:bg-indigo-50'
+                  }`
+                }
+              >
+                <Upload className="w-5 h-5" />
+                <span>Deployment</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/notifications"
+                className={({ isActive }) =>
+                  `flex items-center p-2 space-x-3 rounded-md ${
+                    isActive ? 'bg-indigo-100 text-indigo-600' : 'text-gray-700 hover:bg-indigo-50'
+                  }`
+                }
+              >
+                <Bell className="w-5 h-5" />
+                <span>Notifications</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/help-center"
+                className={({ isActive }) =>
+                  `flex items-center p-2 space-x-3 rounded-md ${
+                    isActive ? 'bg-indigo-100 text-indigo-600' : 'text-gray-700 hover:bg-indigo-50'
+                  }`
+                }
+              >
+                <HelpCircle className="w-5 h-5" />
+                <span>Help Center</span>
               </NavLink>
             </li>
             
