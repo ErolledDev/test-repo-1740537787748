@@ -106,7 +106,7 @@ const DashboardPage: React.FC = () => {
             </button>
           </div>
           
-          <div className="p-6 bg-gradient-to-r from <div className="p-6 bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow text-white">
+          <div className="p-6 bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow text-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Live Chat</h3>
               <MessageSquare className="w-6 h-6" />
@@ -151,5 +151,3 @@ const DashboardPage: React.FC = () => {
 };
 
 export default DashboardPage;
-  )
-}
