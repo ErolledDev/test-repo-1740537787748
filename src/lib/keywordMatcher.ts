@@ -1,21 +1,17 @@
 import stringSimilarity from 'string-similarity';
+import { KeywordResponse } from '../types';
 
 export interface MatchResult {
   matched: boolean;
   response: string | null;
   confidence: number;
   matchType: 'exact' | 'fuzzy' | 'regex' | 'synonym' | 'none';
+  keywordId?: string;
 }
 
 export function matchKeyword(
   message: string, 
-  keywords: Array<{ 
-    keyword: string; 
-    response: string; 
-    synonyms?: string[]; 
-    regex_pattern?: string;
-    priority?: number;
-  }>
+  keywords: KeywordResponse[]
 ): MatchResult {
   // Normalize the message
   const normalizedMessage = message.toLowerCase().trim();
@@ -32,7 +28,8 @@ export function matchKeyword(
         matched: true,
         response: item.response,
         confidence: 1,
-        matchType: 'exact'
+        matchType: 'exact',
+        keywordId: item.id
       };
     }
   }
@@ -47,7 +44,8 @@ export function matchKeyword(
             matched: true,
             response: item.response,
             confidence: 0.9,
-            matchType: 'regex'
+            matchType: 'regex',
+            keywordId: item.id
           };
         }
       } catch (error) {
@@ -65,7 +63,8 @@ export function matchKeyword(
             matched: true,
             response: item.response,
             confidence: 0.95,
-            matchType: 'synonym'
+            matchType: 'synonym',
+            keywordId: item.id
           };
         }
       }
@@ -76,7 +75,8 @@ export function matchKeyword(
   let bestMatch = {
     keyword: '',
     response: '',
-    similarity: 0
+    similarity: 0,
+    keywordId: ''
   };
   
   for (const item of sortedKeywords) {
@@ -89,7 +89,8 @@ export function matchKeyword(
       bestMatch = {
         keyword: item.keyword,
         response: item.response,
-        similarity
+        similarity,
+        keywordId: item.id
       };
     }
     
@@ -105,7 +106,8 @@ export function matchKeyword(
           bestMatch = {
             keyword: synonym,
             response: item.response,
-            similarity: synSimilarity
+            similarity: synSimilarity,
+            keywordId: item.id
           };
         }
       }
@@ -117,7 +119,8 @@ export function matchKeyword(
       matched: true,
       response: bestMatch.response,
       confidence: bestMatch.similarity,
-      matchType: 'fuzzy'
+      matchType: 'fuzzy',
+      keywordId: bestMatch.keywordId
     };
   }
   
@@ -128,4 +131,26 @@ export function matchKeyword(
     confidence: 0,
     matchType: 'none'
   };
+}
+
+// Track keyword usage for analytics
+export function trackKeywordUsage(keywordId: string, userId: string) {
+  try {
+    // In a real implementation, this would send data to your analytics system
+    // For now, we'll just log it
+    console.log(`Keyword ${keywordId} used by user ${userId}`);
+    
+    // You could store this in localStorage for demo purposes
+    const keywordUsage = JSON.parse(localStorage.getItem('keyword_usage') || '{}');
+    if (!keywordUsage[keywordId]) {
+      keywordUsage[keywordId] = 0;
+    }
+    keywordUsage[keywordId]++;
+    localStorage.setItem('keyword_usage', JSON.stringify(keywordUsage));
+    
+    return true;
+  } catch (error) {
+    console.error('Error tracking keyword usage:', error);
+    return false;
+  }
 }

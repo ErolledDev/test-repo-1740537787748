@@ -26,6 +26,9 @@ export interface WidgetSettings {
   icon: string;
   welcome_message: string;
   is_active: boolean;
+  auto_open?: boolean;
+  open_delay?: number;
+  hide_on_mobile?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -72,4 +75,13 @@ export interface AnalyticsData {
   keyword_matches: Record<string, number>;
   chat_duration: number;
   visitor_satisfaction?: number;
+}
+
+export interface DeploymentConfig {
+  provider: 'netlify' | 'vercel' | 'github-pages';
+  deployId?: string;
+  deployUrl?: string;
+  claimUrl?: string;
+  customDomain?: string;
+  autoRedeploy?: boolean;
 }

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/layout/Layout';
 import WidgetPreview from '../components/widget/WidgetPreview';
-import { getWidgetSettings, updateWidgetSettings } from '../lib/api';
+import { getWidgetSettings, updateWidgetSettings, getKeywordResponses } from '../lib/api';
 import { getCurrentUser } from '../lib/supabase';
-import { WidgetSettings } from '../types';
+import { WidgetSettings, KeywordResponse } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { Save, RefreshCw } from 'lucide-react';
 
@@ -18,15 +18,20 @@ const WidgetSettingsPage: React.FC = () => {
     icon: 'message-circle',
     welcome_message: 'Hello! How can I help you today?',
     is_active: true,
+    auto_open: false,
+    open_delay: 3,
+    hide_on_mobile: false,
     created_at: '',
     updated_at: ''
   });
   
+  const [keywordResponses, setKeywordResponses] = useState<KeywordResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [userName, setUserName] = useState('User');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,6 +47,7 @@ const WidgetSettingsPage: React.FC = () => {
         setUserName(user.email?.split('@')[0] || 'User');
         
         const widgetSettings = await getWidgetSettings(user.id);
+        const responses = await getKeywordResponses(user.id);
         
         if (widgetSettings) {
           setSettings(widgetSettings);
@@ -51,6 +57,10 @@ const WidgetSettingsPage: React.FC = () => {
             ...prev,
             user_id: user.id
           }));
+        }
+        
+        if (responses) {
+          setKeywordResponses(responses);
         }
       } catch (error) {
         console.error('Error fetching widget settings:', error);
@@ -71,6 +81,11 @@ const WidgetSettingsPage: React.FC = () => {
       setSettings(prev => ({
         ...prev,
         [name]: checked
+      }));
+    } else if (name === 'open_delay') {
+      setSettings(prev => ({
+        ...prev,
+        [name]: parseInt(value) || 3
       }));
     } else {
       setSettings(prev => ({
@@ -262,6 +277,70 @@ const WidgetSettingsPage: React.FC = () => {
                 </div>
               </div>
               
+              {/* Advanced Settings */}
+              <div className="p-6 bg-white rounded-lg shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">Advanced Settings</h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced(!showAdvanced)}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  >
+                    {showAdvanced ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                
+                {showAdvanced && (
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="auto_open"
+                        name="auto_open"
+                        checked={settings.auto_open}
+                        onChange={handleChange}
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      />
+                      <label htmlFor="auto_open" className="block ml-2 text-sm font-medium text-gray-700">
+                        Auto-open chat widget
+                      </label>
+                    </div>
+                    
+                    {settings.auto_open && (
+                      <div>
+                        <label htmlFor="open_delay" className="block text-sm font-medium text-gray-700">
+                          Open Delay (seconds)
+                        </label>
+                        <input
+                          type="number"
+                          id="open_delay"
+                          name="open_delay"
+                          min="0"
+                          max="60"
+                          value={settings.open_delay}
+                          onChange={handleChange}
+                          className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="hide_on_mobile"
+                        name="hide_on_mobile"
+                        checked={settings.hide_on_mobile}
+                        onChange={handleChange}
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      />
+                      <label htmlFor="hide_on_mobile" className="block ml-2 text-sm font-medium text-gray-700">
+                        Hide on mobile devices
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               {/* Status */}
               <div className="p-6 bg-white rounded-lg shadow">
                 <h3 className="mb-4 text-lg font-medium text-gray-900">Widget Status</h3>
@@ -315,7 +394,7 @@ const WidgetSettingsPage: React.FC = () => {
                 This is how your chat widget will appear on your website.
               </p>
               
-              <WidgetPreview settings={settings} />
+              <WidgetPreview settings={settings} keywordResponses={keywordResponses} />
             </div>
             
             <div className="p-6 mt-6 bg-white rounded-lg shadow">

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Paperclip, Smile, User } from 'lucide-react';
-import { WidgetSettings } from '../../types';
+import { MessageCircle, X, Send, Paperclip, Smile, User, Bot } from 'lucide-react';
+import { WidgetSettings, KeywordResponse } from '../../types';
+import { matchKeyword, trackKeywordUsage } from '../../lib/keywordMatcher';
 
 interface ChatWidgetProps {
   settings: WidgetSettings;
   userId: string;
+  keywordResponses?: KeywordResponse[];
   onSendMessage?: (message: string) => void;
   onClose?: () => void;
   initialMessages?: Array<{
@@ -19,6 +21,7 @@ interface ChatWidgetProps {
 const ChatWidget: React.FC<ChatWidgetProps> = ({ 
   settings, 
   userId, 
+  keywordResponses = [],
   onSendMessage, 
   onClose,
   initialMessages = [],
@@ -48,6 +51,17 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     }
   }, [messages]);
 
+  useEffect(() => {
+    // Auto-open chat if specified in settings
+    if (settings.auto_open) {
+      const timer = setTimeout(() => {
+        setIsOpen(true);
+      }, (settings.open_delay || 3) * 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [settings.auto_open, settings.open_delay]);
+
   const toggleChat = () => {
     setIsOpen(!isOpen);
     if (onClose && !isOpen === false) {
@@ -60,24 +74,54 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     
     if (!message.trim()) return;
     
-    const newMessage = {
+    const userMessage = {
       id: Date.now().toString(),
       content: message,
       sender: 'user' as const,
       timestamp: new Date(),
     };
     
-    setMessages([...messages, newMessage]);
+    setMessages([...messages, userMessage]);
     setMessage('');
     
     if (onSendMessage) {
       onSendMessage(message);
     }
     
-    if (isDemo) {
-      // Simulate bot response in demo mode
-      setIsTyping(true);
-      setTimeout(() => {
+    // Process message with keyword matching
+    processMessage(message);
+  };
+
+  const processMessage = (userMessage: string) => {
+    setIsTyping(true);
+    
+    // Simulate network delay
+    setTimeout(() => {
+      // Match against keywords if available
+      if (keywordResponses && keywordResponses.length > 0) {
+        const matchResult = matchKeyword(userMessage, keywordResponses);
+        
+        if (matchResult.matched && matchResult.response) {
+          // Track keyword usage for analytics if not in demo mode
+          if (!isDemo && matchResult.keywordId) {
+            trackKeywordUsage(matchResult.keywordId, userId);
+          }
+          
+          const botResponse = {
+            id: (Date.now() + 1).toString(),
+            content: matchResult.response,
+            sender: 'bot' as const,
+            timestamp: new Date(),
+          };
+          
+          setMessages(prev => [...prev, botResponse]);
+          setIsTyping(false);
+          return;
+        }
+      }
+      
+      // If no keyword match or no keywords available, use default response
+      if (isDemo) {
         const botResponse = {
           id: (Date.now() + 1).toString(),
           content: 'This is a preview of how your chat widget will respond to user messages.',
@@ -85,10 +129,20 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
           timestamp: new Date(),
         };
         
-        setMessages((prev) => [...prev, botResponse]);
-        setIsTyping(false);
-      }, 1500);
-    }
+        setMessages(prev => [...prev, botResponse]);
+      } else {
+        const botResponse = {
+          id: (Date.now() + 1).toString(),
+          content: "I don't have a specific answer for that. Would you like to speak with a human agent?",
+          sender: 'bot' as const,
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, botResponse]);
+      }
+      
+      setIsTyping(false);
+    }, 1000);
   };
 
   const getPositionClasses = () => {
@@ -194,6 +248,12 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                     <div className="flex items-center mb-1 text-xs font-medium">
                       <User className="w-3 h-3 mr-1" />
                       <span>Agent</span>
+                    </div>
+                  )}
+                  {msg.sender === 'bot' && (
+                    <div className="flex items-center mb-1 text-xs font-medium">
+                      <Bot className="w-3 h-3 mr-1" />
+                      <span>Bot</span>
                     </div>
                   )}
                   {msg.content}
