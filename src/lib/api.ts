@@ -141,33 +141,6 @@ export async function updateChatSession(session: Partial<ChatSession>): Promise<
   return data as ChatSession;
 }
 
-// Widget Data API
-export async function getWidgetData(uid: string) {
-  // This would be a public endpoint that the widget.js script calls
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('id')
-    .eq('id', uid)
-    .single();
-  
-  if (userError || !user) {
-    console.error('Error fetching user:', userError);
-    return null;
-  }
-  
-  const userId = user.id;
-  
-  const [settings, keywordResponses] = await Promise.all([
-    getWidgetSettings(userId),
-    getKeywordResponses(userId)
-  ]);
-  
-  return {
-    settings,
-    keywordResponses
-  };
-}
-
 // Create a new chat session
 export async function createChatSession(session: Omit<ChatSession, 'id' | 'created_at' | 'updated_at'>): Promise<ChatSession | null> {
   const { data, error } = await supabase
@@ -219,21 +192,84 @@ export async function getActiveChatSessions(userId: string): Promise<ChatSession
 
 // Get analytics data
 export async function getAnalyticsData(userId: string, timeRange: string = '7d') {
-  // In a real implementation, this would fetch analytics data from the database
-  // For now, we'll return mock data
-  return {
-    total_chats: 156,
-    total_messages: 1243,
-    average_response_time: 8.5,
-    chat_duration: 4.2,
-    visitor_satisfaction: 92,
-    keyword_matches: {
-      'pricing': 42,
-      'support': 38,
-      'features': 27,
-      'account': 21,
-      'billing': 18,
-      'other': 34
-    }
-  };
+  try {
+    // Get total chats
+    const { data: chatData, error: chatError } = await supabase
+      .from('chat_sessions')
+      .select('id')
+      .eq('user_id', userId);
+    
+    if (chatError) throw chatError;
+    
+    // Get total messages
+    const { data: messageData, error: messageError } = await supabase
+      .from('messages')
+      .select('id, chat_session_id, chat_sessions!inner(user_id)')
+      .eq('chat_sessions.user_id', userId);
+    
+    if (messageError) throw messageError;
+    
+    // For a real implementation, we would calculate more metrics
+    // For now, we'll return some basic stats
+    return {
+      total_chats: chatData?.length || 0,
+      total_messages: messageData?.length || 0,
+      average_response_time: 8.5, // Mock data
+      chat_duration: 4.2, // Mock data
+      visitor_satisfaction: 92, // Mock data
+      keyword_matches: {
+        'pricing': 42,
+        'support': 38,
+        'features': 27,
+        'account': 21,
+        'billing': 18,
+        'other': 34
+      }
+    };
+  } catch (error) {
+    console.error('Error fetching analytics data:', error);
+    return {
+      total_chats: 0,
+      total_messages: 0,
+      average_response_time: 0,
+      chat_duration: 0,
+      visitor_satisfaction: 0,
+      keyword_matches: {}
+    };
+  }
+}
+
+// Widget Data API for public access
+export async function getWidgetData(uid: string) {
+  try {
+    // Get widget settings
+    const { data: settings, error: settingsError } = await supabase
+      .from('widget_settings')
+      .select('*')
+      .eq('user_id', uid)
+      .single();
+    
+    if (settingsError) throw settingsError;
+    
+    // Get keyword responses
+    const { data: keywordResponses, error: keywordError } = await supabase
+      .from('keyword_responses')
+      .select('*')
+      .eq('user_id', uid)
+      .eq('is_active', true)
+      .order('priority', { ascending: false });
+    
+    if (keywordError) throw keywordError;
+    
+    return {
+      settings,
+      keywordResponses
+    };
+  } catch (error) {
+    console.error('Error fetching widget data:', error);
+    return {
+      settings: null,
+      keywordResponses: []
+    };
+  }
 }

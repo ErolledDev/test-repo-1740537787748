@@ -1,15 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-// These would typically come from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Get environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase URL and Anon Key must be provided');
+  console.error('Supabase URL and Anon Key must be provided in environment variables');
 }
 
+// Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Authentication functions
 export async function signUp(email: string, password: string) {
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -17,21 +19,6 @@ export async function signUp(email: string, password: string) {
   });
   
   if (data.user && !error) {
-    // Create a user record in our users table
-    const { error: profileError } = await supabase
-      .from('users')
-      .insert([
-        { 
-          id: data.user.id,
-          email: data.user.email,
-          role: 'user'
-        }
-      ]);
-    
-    if (profileError) {
-      console.error('Error creating user profile:', profileError);
-    }
-    
     // Create default widget settings for the user
     const { error: settingsError } = await supabase
       .from('widget_settings')
@@ -111,16 +98,6 @@ export async function updateUserProfile(updates: {
   } catch (error: any) {
     return { error };
   }
-}
-
-export async function getUserProfile(userId: string) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', userId)
-    .single();
-  
-  return { profile: data, error };
 }
 
 export async function resetPassword(email: string) {
