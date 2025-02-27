@@ -106,6 +106,15 @@ const WidgetSettingsPage: React.FC = () => {
     setSuccess(null);
     
     try {
+      // Make sure we have a user_id
+      if (!settings.user_id) {
+        const { user } = await getCurrentUser();
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+        settings.user_id = user.id;
+      }
+      
       const updatedSettings = await updateWidgetSettings(settings);
       
       if (updatedSettings) {

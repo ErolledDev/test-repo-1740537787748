@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { Send, User, Bot, Clock, X, Check, Phone, Video, Paperclip } from 'lucide-react';
 import { ChatSession, Message } from '../../types';
-import { updateChatSession, getChatSessionMessages } from '../../lib/api';
+import { updateChatSession, getChatSessionMessages, createMessage } from '../../lib/api';
 import { 
   subscribeToNewMessages, 
   unsubscribeFromNewMessages, 
@@ -95,6 +95,9 @@ const LiveChatPanel: React.FC<LiveChatPanelProps> = ({
       
       // Send via socket
       sendSocketMessage(newMessage);
+      
+      // Also save to database directly as a fallback
+      await createMessage(newMessage);
       
       // Update session status if it's not already agent_assigned
       if (session.status !== 'agent_assigned') {
@@ -289,7 +292,7 @@ const LiveChatPanel: React.FC<LiveChatPanelProps> = ({
           />
           <button
             type="submit"
-            disabled={sending || session.status === 'closed'}
+            disabled={sending || session.status === 'closed' || !message.trim()}
             className="px-4 py-2 text-white bg-indigo-600 border border-transparent rounded-r-md hover:bg-indigo-700 disabled:opacity-50"
           >
             {sending ? (

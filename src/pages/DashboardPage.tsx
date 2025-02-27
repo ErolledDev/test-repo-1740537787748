@@ -3,7 +3,7 @@ import Layout from '../components/layout/Layout';
 import DashboardOverview from '../components/dashboard/DashboardOverview';
 import RecentChats from '../components/dashboard/RecentChats';
 import WidgetCodeGenerator from '../components/widget/WidgetCodeGenerator';
-import { getChatSessions } from '../lib/api';
+import { getChatSessions, getAnalyticsData } from '../lib/api';
 import { getCurrentUser } from '../lib/supabase';
 import { ChatSession } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +14,12 @@ const DashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('User');
   const [userId, setUserId] = useState('');
+  const [analyticsData, setAnalyticsData] = useState({
+    totalChats: 0,
+    totalMessages: 0,
+    averageResponseTime: 0,
+    activeChats: 0
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,8 +35,24 @@ const DashboardPage: React.FC = () => {
         setUserName(user.email?.split('@')[0] || 'User');
         setUserId(user.id);
         
+        // Fetch chat sessions
         const chatSessions = await getChatSessions(user.id);
         setChats(chatSessions);
+        
+        // Fetch analytics data
+        const analytics = await getAnalyticsData(user.id);
+        
+        // Calculate active chats
+        const activeChatCount = chatSessions.filter(chat => 
+          chat.status === 'active' || chat.status === 'agent_assigned'
+        ).length;
+        
+        setAnalyticsData({
+          totalChats: analytics.total_chats || 0,
+          totalMessages: analytics.total_messages || 0,
+          averageResponseTime: analytics.average_response_time || 0,
+          activeChats: activeChatCount
+        });
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -42,14 +64,8 @@ const DashboardPage: React.FC = () => {
   }, [navigate]);
 
   const handleViewChat = (chatId: string) => {
-    navigate(`/chat-history/${chatId}`);
+    navigate(`/live-chat`);
   };
-
-  // Calculate dashboard metrics
-  const totalChats = chats.length;
-  const activeChats = chats.filter(chat => chat.status === 'active').length;
-  const totalMessages = 120; // This would come from an API in a real app
-  const averageResponseTime = 8; // This would come from an API in a real app
 
   if (loading) {
     return (
@@ -65,10 +81,10 @@ const DashboardPage: React.FC = () => {
     <Layout title="Dashboard" userName={userName}>
       <div className="space-y-6">
         <DashboardOverview
-          totalChats={totalChats}
-          totalMessages={totalMessages}
-          averageResponseTime={averageResponseTime}
-          activeChats={activeChats}
+          totalChats={analyticsData.totalChats}
+          totalMessages={analyticsData.totalMessages}
+          averageResponseTime={analyticsData.averageResponseTime}
+          activeChats={analyticsData.activeChats}
         />
         
         {/* Quick Actions */}
@@ -90,7 +106,7 @@ const DashboardPage: React.FC = () => {
             </button>
           </div>
           
-          <div className="p-6 bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow text-white">
+          <div className="p-6 bg-gradient-to-r from <div className="p-6 bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow text-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Live Chat</h3>
               <MessageSquare className="w-6 h-6" />
@@ -135,3 +151,5 @@ const DashboardPage: React.FC = () => {
 };
 
 export default DashboardPage;
+  )
+}
