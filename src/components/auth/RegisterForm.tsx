@@ -40,9 +40,12 @@ const RegisterForm: React.FC = () => {
       if (data) {
         // Registration successful
         navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
+      } else {
+        throw new Error('Registration failed. Please try again.');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to sign up');
+      console.error('Registration error:', err);
+      setError(err.message || 'Failed to sign up. Please try again.');
     } finally {
       setLoading(false);
     }

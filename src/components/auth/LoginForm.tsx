@@ -35,9 +35,12 @@ const LoginForm: React.FC = () => {
       
       if (data?.user) {
         navigate('/dashboard');
+      } else {
+        throw new Error('Login failed. Please try again.');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      console.error('Login error:', err);
+      setError(err.message || 'Failed to sign in. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }

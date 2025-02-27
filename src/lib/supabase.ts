@@ -31,7 +31,10 @@ export async function signUp(email: string, password: string) {
           position: 'bottom-right',
           icon: 'message-circle',
           welcome_message: 'Hello! How can I help you today?',
-          is_active: true
+          is_active: true,
+          auto_open: false,
+          open_delay: 3,
+          hide_on_mobile: false
         }
       ]);
     
@@ -44,12 +47,45 @@ export async function signUp(email: string, password: string) {
 }
 
 export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  
-  return { data, error };
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    if (error) throw error;
+    
+    // Check if user exists in the users table
+    if (data.user) {
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+      
+      // If user doesn't exist in the users table, create them
+      if (userError && userError.code === 'PGRST116') {
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert([
+            {
+              id: data.user.id,
+              email: data.user.email,
+              role: 'user'
+            }
+          ]);
+        
+        if (insertError) {
+          console.error('Error creating user record:', insertError);
+        }
+      }
+    }
+    
+    return { data, error: null };
+  } catch (error) {
+    console.error('Sign in error:', error);
+    return { data: null, error };
+  }
 }
 
 export async function signOut() {
